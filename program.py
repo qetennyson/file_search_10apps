@@ -45,7 +45,6 @@ def get_search_txt_from_user():
 
 
 def search_file(filename, search_text):
-    matches = []
     with open(filename, 'r', encoding='utf-8') as fin:
 
         line_num = 0
@@ -53,14 +52,14 @@ def search_file(filename, search_text):
             line_num += 1
             if line.lower().find(search_text) >= 0:
                 m = SearchResult(line=line_num, file=filename, text=line)
-                matches.append(m)
+                yield m
 
-    return matches
+    # return matches
 
 def search_folders(folder, text):
     print(f"Would search {folder} for {text}")
 
-    all_matches = []
+    # all_matches = []
     items = os.listdir(folder)
 
     for item in items:
@@ -68,11 +67,24 @@ def search_folders(folder, text):
         if os.path.isdir(full_item):
             # BORN FOR RECURSION - MICHAEL KENNEDY
             matches = search_folders(full_item, text)
-            all_matches.extend(matches)
-        else:
-            matches = search_file(full_item, text)
-            all_matches.extend(matches)
+            # all_matches.extend(matches)
 
-    return all_matches
+            # simplest example of yield that is pre-3.3
+            for match in matches:
+                yield match
+
+        else:
+            #TODO: Note differences between for loop yield and yield from
+            # matches = search_file(full_item, text)
+            #
+            #
+            # for match in matches:
+            #     yield match
+
+            # ridiculously simple version for 3.3+
+            yield from search_file(full_item, text)
+
+    # return all_matches
+
 if __name__ == '__main__':
     main()
